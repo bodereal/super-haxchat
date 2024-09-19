@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "HaxBall DOM Observer",
+  "version": "1.0",
+  "description": "Observes announcements on haxball.com",
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.haxball.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*.haxball.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
