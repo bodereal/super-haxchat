@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "HaxBall DOM Observer",
+  "name": "BODE Super Chat",
   "version": "1.0",
-  "description": "Observes announcements on haxball.com",
+  "description": "Chat on Steroids for HaxBall",
   "permissions": [
     "activeTab"
   ],

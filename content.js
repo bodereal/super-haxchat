@@ -1,24 +1,34 @@
 console.log("Content script starting to load");
 
-// Define the list of commands
-const commands = [
+const commands =[
   { pattern: "gosta", message: "😏 ELE GOOOOSTA!" },
   { pattern: "ui", message: "😏 UUUUUIIII!" },
   { pattern: "cavalo", message: "🐴 CAVALO!" },
   { pattern: "k{2,5}", message: "🤣 KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK" },
+  { pattern: "u{2,5}", message: "😲 UUUUUUUUUUUUUU!" },
   { pattern: "la[cç]o", message: "🎀 LAÇO" },
   { pattern: "guol", message: "⚽ GUUUUUOOOOOOOOOOOOOOL!" },
+  { pattern: "dentro", message: "⚽ TA DENTROOOOOO!" },
+  { pattern: "gg", message: "🤝 GG" },
+  { pattern: "pace", message: "🦵 PACE" },
+  { pattern: "tira", message: "💥 TIIIRA ZAGA!" },
+  { pattern: "errou", message: "🚫 ERRROUUUU!" },
+  { pattern: "vai", message: "🙅 VAI ERRAR!" },
+  { pattern: "efe", message: "💀 F NO CHAT" },
+  { pattern: "paz", message: "🏳️ PAZ NOS ESTÁDIOS" },
+  { pattern: "toca", message: "🤌 TOCA ESSA BOLA!" },
+  { pattern: "tremeu", message: "🥴 TREMEU" },
+  { pattern: "digita", message: "⌨️ DIGITA MESMO!" },
+  { pattern: "calculado", message: "📐 CALCULADO" },
+  { pattern: "impressionante", message: "🫠 IMPRESSIONANTE" },
+  { pattern: "skill|tricks", message: "🪄 SKILLS AND TRICKS" },
   { pattern: "genio", message: "🧞 GÊNIO DA BOLA!" },
-  { pattern: "@(\w+) genio", message: "🧞 $1 É UM GÊNIO!" },
-  { pattern: "lenda", message: "🏆 LENDÁRIO!" },
-  { pattern: "@(\w+) lenda", message: "🏆 $1 É UMA LENDA DO FUTEBOL" },
+  { pattern: "lenda", message: "🏆 LENDA!" },
   { pattern: "bagre", message: "🐟 BAGRE!" },
   { pattern: "bagres", message: "🐟 É UM AQUÁRIO DE BAGRES" },
-  { pattern: "@(\w+) bagre", message: "🐟 $1 É MUITO BAGRE!" },
   { pattern: "pick|pickford", message: "🧤 PICKFORD!!!" },
   { pattern: "cassio", message: "🧤 CÁÁÁSSSIOOOO!!!" },
   { pattern: "gk", message: "👺 GK MONSTRO!!!" },
-  { pattern: "@(\w+) besta", message: "👹 $1 É UMA BESTA ENJAULADA!!!" },
   { pattern: "cadeira", message: "🪑 VAI TOMAR CADEIRADA!" },
   { pattern: "sai", message: "💨 SAI DAQUIII!" },
   { pattern: "some", message: "🏃 SOME DAQUI DESGRAÇA!" },
@@ -28,7 +38,30 @@ const commands = [
   { pattern: "oe", message: "🤸 OE!" },
   { pattern: "oe2", message: "🤸 OE DUPLO!" },
   { pattern: "oe3", message: "🤸 OE TRIPLO!" },
-].map(command => ({ ...command, pattern: new RegExp(`^\!${command.pattern}$`, 'i')}));
+  { pattern: "enseba", message: "🤸 ENSEBA!" },
+  { pattern: "cera", message: "👂 FAZ CERA!" },
+  { pattern: "\@(.+?)\\sbagre", message: "🐟 $1 É MUITO BAGRE!" },
+  { pattern: "\@(.+?)\\sbesta", message: "👹 $1 É UMA BESTA ENJAULADA!!!" },
+  { pattern: "\@(.+?)\\sdecide", message: "🦶 $1 DECIDE MUITO!!!" },
+  { pattern: "\@(.+?)\\slenda", message: "🏆 $1 É UMA LENDA DO FUTEBOL" },
+  { pattern: "\@(.+?)\\sgenio", message: "🧞 $1 É UM GÊNIO!" },
+  { pattern: "\@(.+?)\\salface", message: "🥬 $1 É MUITO MÃO DE ALFACE" },
+].map(command => ({
+  ...command,
+  pattern: new RegExp(`^\!${command.pattern}$`, 'i')
+}));
+
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 function replaceCommand(text) {
   for (const command of commands) {
@@ -50,28 +83,21 @@ function replaceCommand(text) {
 function handleInput(input) {
   console.log("Handling input...", input);
   
-  const handleKeyEvent = (event) => {
-    if (event.key === "Tab") {
-      event.preventDefault(); // Prevent default tab behavior
+  const checkCommand = debounce(() => {
+    const originalText = input.value.trim();
+    const replacedText = replaceCommand(originalText);
+    console.log("Potential command:", originalText, replacedText);
+    
+    if (replacedText !== originalText) {
+      input.value = replacedText;
+      console.log("Replaced text in input:", input.value);
       
-      const originalText = input.value.trim();
-      const replacedText = replaceCommand(originalText);
-      console.log("Potential command:", originalText, replacedText);
-      
-      if (replacedText !== originalText) {
-        input.value = replacedText;
-        console.log("Replaced text in input:", input.value);
-      }
-      
-      // Refocus the input and move cursor to end
-      setTimeout(() => {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      }, 1);
+      // Move cursor to end
+      input.setSelectionRange(input.value.length, input.value.length);
     }
-  };
+  }, 300); // 300ms debounce time
 
-  input.addEventListener("keydown", handleKeyEvent);
+  input.addEventListener("input", checkCommand);
 }
 
 function handleIframe(iframe) {
@@ -90,7 +116,7 @@ function waitForElement(parent, selector, callback) {
     return;
   }
 
-  const observer = new MutationObserver((mutations, obs) => {
+  const observer = new MutationObserver((_, obs) => {
     const element = parent.querySelector(selector);
     if (element) {
       obs.disconnect();
